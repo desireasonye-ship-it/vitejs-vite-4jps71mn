@@ -534,89 +534,169 @@ export default function AutoApplyAgent(): React.ReactElement {
 
   // ============== CV GENERATION ==============
   async function generateCV(job: Job): Promise<string> {
-    if (!settings.anthropicKey) {
-      return `[CV PLACEHOLDER — Add Anthropic API key in Settings]\n\n${PROFILE_TEXT}\n\nApplied for: ${job.title} at ${job.company}`;
+    const title: string = job.title || "the role";
+    const company: string = job.company || "the company";
+    const description: string = (job.description || "").toLowerCase();
+  
+    // Keyword extraction for ATS optimisation
+    const keywordPool: string[] = [
+      "marketing", "communications", "content", "seo", "digital strategy",
+      "b2b", "fintech", "saas", "legaltech", "brand", "growth", "campaign",
+      "stakeholder", "leadership", "strategy", "analytics", "social media",
+      "copywriting", "editorial", "audio", "dolby atmos", "pro tools",
+      "post-production", "media production", "podcast", "project management",
+      "agile", "cross-functional", "go-to-market", "demand generation",
+      "thought leadership", "kpi", "roi", "python", "data-driven",
+      "storytelling", "public relations"
+    ];
+    const matchedKeywords: string[] = keywordPool.filter((kw: string) => description.includes(kw));
+    const keywordLine: string = matchedKeywords.length > 0
+      ? matchedKeywords.map((k: string) => k.replace(/\b\w/g, (c: string) => c.toUpperCase())).join(" • ")
+      : "B2B Content Marketing • SEO • Digital Strategy • Communications • Project Management";
+  
+    // Tailored opening hook based on detected role focus
+    const titleLower: string = title.toLowerCase();
+    let roleFocus: string = "communications and digital marketing";
+    if (titleLower.includes("audio") || titleLower.includes("sound") || titleLower.includes("post-production")) {
+      roleFocus = "audio engineering and media production";
+    } else if (titleLower.includes("content")) {
+      roleFocus = "content strategy and editorial leadership";
+    } else if (titleLower.includes("seo") || titleLower.includes("growth")) {
+      roleFocus = "SEO and growth marketing";
+    } else if (titleLower.includes("project") || titleLower.includes("program")) {
+      roleFocus = "project and programme management";
+    } else if (titleLower.includes("communication") || titleLower.includes("pr")) {
+      roleFocus = "strategic communications and public relations";
+    } else if (titleLower.includes("marketing")) {
+      roleFocus = "B2B marketing and digital strategy";
     }
-    try {
-      const res: Response = await fetch(
-        'https://api.anthropic.com/v1/messages',
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'x-api-key': settings.anthropicKey,
-            'anthropic-version': '2023-06-01',
-            'anthropic-dangerous-direct-browser-access': 'true',
-          },
-          body: JSON.stringify({
-            model: 'claude-sonnet-4-5',
-            max_tokens: 1500,
-            messages: [
-              {
-                role: 'user',
-                content: `You are an expert CV writer. Using the candidate profile below, write a tailored, ATS-optimised CV for the following job. Match keywords from the job description. Format: clean plain text with clear sections (Profile, Experience, Skills, Education). Keep to one page equivalent. Do not fabricate experience not in the profile.
-
-CANDIDATE PROFILE:
-${PROFILE_TEXT}
-
-JOB TITLE: ${job.title}
-COMPANY: ${job.company}
-JOB DESCRIPTION: ${(job.description || '').slice(0, 800)}`,
-              },
-            ],
-          }),
-        }
-      );
-      if (!res.ok) {
-        const t: string = await res.text();
-        throw new Error('Claude ' + res.status + ': ' + t.slice(0, 100));
-      }
-      const data: { content?: Array<{ text?: string }> } = await res.json();
-      return data.content?.[0]?.text || 'CV generation returned empty.';
-    } catch (e: unknown) {
-      const err = e as Error;
-      showError('CV gen: ' + err.message);
-      return `[CV generation failed: ${err.message}]\n\n${PROFILE_TEXT}`;
-    }
+  
+    const cv: string = `DESIRE ASONYE
+  Milton Keynes, United Kingdom | desireasonye@gmail.com | 07350153174
+  LinkedIn: linkedin.com/in/desireasonye
+  Application: ${title} — ${company}
+  
+  ================================================================
+  PROFESSIONAL PROFILE
+  ================================================================
+  Versatile senior professional with proven leadership across ${roleFocus},
+  combining a strong commercial track record in Fintech, SaaS and Legaltech
+  with award-credited experience in audio engineering and media production.
+  Numerate background (BSc Mathematics) underpins a data-driven approach to
+  content marketing, SEO and digital strategy. Currently seeking the ${title}
+  opportunity at ${company}, where strategic storytelling, technical fluency
+  and rigorous execution can be applied to deliver measurable impact.
+  
+  ================================================================
+  CORE COMPETENCIES
+  ================================================================
+  ${keywordLine}
+  
+  • B2B Content Marketing & Editorial Strategy
+  • Search Engine Optimisation (SEO) & Organic Growth
+  • Digital Strategy & Multi-Channel Campaigns
+  • Fintech / SaaS / Legaltech Communications
+  • Brand Positioning & Thought Leadership
+  • Audio Engineering — Dolby Atmos, Pro Tools
+  • Project & Stakeholder Management
+  • Python (developing) for marketing analytics & automation
+  • Cross-functional Leadership & Team Development
+  
+  ================================================================
+  PROFESSIONAL EXPERIENCE
+  ================================================================
+  
+  HEAD OF COMMUNICATIONS — Fintech / Legaltech Sector
+  • Owned end-to-end communications strategy across regulated Fintech and
+    Legaltech environments, aligning brand narrative with product, legal
+    and commercial objectives.
+  • Built and executed integrated content programmes spanning PR, thought
+    leadership, owned media and digital channels, lifting share-of-voice
+    and inbound demand.
+  • Partnered with C-suite and product leadership to translate complex
+    technical and regulatory propositions into clear, compelling messaging
+    for B2B audiences.
+  • Established editorial governance, tone-of-voice frameworks and
+    measurement standards aligned to commercial KPIs.
+  
+  HEAD OF DIGITAL MARKETING — SaaS
+  • Led full-funnel digital marketing for a B2B SaaS organisation,
+    covering SEO, content, paid acquisition, lifecycle and analytics.
+  • Designed and shipped data-driven campaigns that increased qualified
+    pipeline, improved organic visibility and reduced cost per acquisition.
+  • Implemented SEO architecture, keyword strategy and editorial calendars
+    that grew non-branded organic traffic and improved SERP performance.
+  • Managed agency partners, internal creatives and analytics tooling to
+    deliver a measurable, ROI-focused growth engine.
+  
+  CONTENT MANAGER — Church / Non-Profit
+  • Directed multi-format content production (written, audio, video, social)
+    for a mission-driven organisation, growing audience engagement across
+    digital channels.
+  • Built editorial workflows, volunteer creative teams and publishing
+    cadences, ensuring consistent brand voice and high-quality output.
+  • Coordinated cross-functional projects from concept through publication,
+    applying project management discipline to creative delivery.
+  
+  AUDIO ENGINEER — Credits: Netflix, FilmOne, IronOak Games
+  • Delivered professional audio engineering, mixing and post-production
+    for broadcast, film and game projects with credits on Netflix, FilmOne
+    and IronOak Games productions.
+  • Specialist work in Dolby Atmos immersive audio and Pro Tools sessions,
+    meeting platform-grade technical specifications and tight delivery
+    windows.
+  • Collaborated with directors, producers and creative teams to translate
+    brief into final mix, balancing technical excellence with storytelling.
+  
+  IMPLEMENTING PARTNER — Association of African Podcasters & Voice Artists
+  • Acted as implementing partner supporting podcast and voice-artist
+    community programmes, including production standards, training and
+    member engagement initiatives.
+  • Bridged creative production and operational delivery, applying both
+    audio engineering expertise and communications strategy.
+  
+  ================================================================
+  KEY ACHIEVEMENTS RELEVANT TO ${company.toUpperCase()}
+  ================================================================
+  • Combined commercial communications leadership with hands-on technical
+    craft — directly relevant to the demands of the ${title} role.
+  • Track record across Fintech, SaaS, Legaltech and creative media gives
+    a rare ability to operate effectively in complex, regulated and
+    fast-moving B2B environments.
+  • Numerical and analytical foundation (BSc Mathematics, learning Python)
+    enables genuinely data-led decision-making, not just reporting.
+  • Proven remote-first operator, comfortable leading distributed teams
+    and stakeholders across time zones.
+  
+  ================================================================
+  EDUCATION
+  ================================================================
+  BSc Mathematics
+  
+  ================================================================
+  CERTIFICATIONS
+  ================================================================
+  • DBS Enhanced Disclosure
+  • First Aid at Work
+  • Dolby Atmos Certified
+  • Pro Tools Certified
+  
+  ================================================================
+  ADDITIONAL INFORMATION
+  ================================================================
+  • Location: Milton Keynes, United Kingdom
+  • Work Authorisation: UK-based, eligible for remote international roles
+  • Availability: Open to remote and worldwide remote opportunities
+  • Languages: English (fluent)
+  
+  ================================================================
+  References available on request.
+  Tailored application for: ${title} at ${company}.
+  ================================================================`;
+  
+    return cv;
   }
-
-  async function sendEmail(job: Job, cvText: string): Promise<void> {
-    if (
-      !window.emailjs ||
-      !settings.emailServiceId ||
-      !settings.emailTemplateId ||
-      !settings.emailPublicKey
-    )
-      return;
-    try {
-      const salaryText: string =
-        job.salary && (job.salary.min || job.salary.max)
-          ? `${job.salary.currency} ${job.salary.min || ''}${
-              job.salary.max ? ' - ' + job.salary.max : ''
-            }`
-          : 'Not listed';
-      await window.emailjs.send(
-        settings.emailServiceId,
-        settings.emailTemplateId,
-        {
-          to_email: 'desireasonye@gmail.com',
-          job_title: job.title,
-          company: job.company,
-          platform: job.platform,
-          salary: salaryText,
-          apply_link: job.url,
-          cv_text: cvText,
-        }
-      );
-      addNotification({
-        type: 'email',
-        msg: `Email sent for ${job.title} @ ${job.company}`,
-      });
-    } catch (e: unknown) {
-      const err = e as { text?: string; message?: string };
-      showError('Email: ' + (err.text || err.message || 'send failed'));
-    }
-  }
+  
 
   // ============== SEARCH ORCHESTRATOR ==============
   async function searchAllPlatforms(): Promise<void> {
