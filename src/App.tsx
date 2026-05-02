@@ -756,20 +756,7 @@ export default function AutoApplyAgent(): React.ReactElement {
                 c.id === nj.id ? { ...c, cv, cvLoading: false } : c
             )
           );
-          void emailjs.send(
-            settings.emailjsServiceId,
-            settings.emailjsTemplateId,
-            {
-              job_title: job.title,
-              company: job.company,
-              platform: job.platform,
-              salary: job.salary,
-              location: job.location,
-              apply_link: job.applyLink,
-              cv_text: cv
-            },
-            settings.emailjsPublicKey
-          );(nj, cv);
+          ;(nj, cv);
         })();
       });
 
