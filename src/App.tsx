@@ -99,16 +99,6 @@ const CANDIDATE_PROFILE: CandidateProfile = {
   visa: 'UK-based, eligible for remote international roles',
 };
 
-const PROFILE_TEXT: string = `Name: ${CANDIDATE_PROFILE.name}
-Email: ${CANDIDATE_PROFILE.email}
-Phone: ${CANDIDATE_PROFILE.phone}
-Location: ${CANDIDATE_PROFILE.location}
-Core Skills: ${CANDIDATE_PROFILE.coreSkills.join(', ')}
-Experience: ${CANDIDATE_PROFILE.experience.join('; ')}
-Education: ${CANDIDATE_PROFILE.education}
-Certifications: ${CANDIDATE_PROFILE.certifications.join(', ')}
-Visa: ${CANDIDATE_PROFILE.visa}`;
-
 const PLATFORM_COLORS: Record<string, string> = {
   Indeed: 'bg-blue-600 text-white',
   RemoteOK: 'bg-green-600 text-white',
@@ -766,7 +756,20 @@ export default function AutoApplyAgent(): React.ReactElement {
                 c.id === nj.id ? { ...c, cv, cvLoading: false } : c
             )
           );
-          void sendEmail(nj, cv);
+          void emailjs.send(
+            settings.emailjsServiceId,
+            settings.emailjsTemplateId,
+            {
+              job_title: job.title,
+              company: job.company,
+              platform: job.platform,
+              salary: job.salary,
+              location: job.location,
+              apply_link: job.applyLink,
+              cv_text: cv
+            },
+            settings.emailjsPublicKey
+          );(nj, cv);
         })();
       });
 
