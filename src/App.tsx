@@ -1,4 +1,4 @@
-// v2 clean build
+// v3 final - no anthropic api calls
 import React, { useState, useEffect, useRef } from 'react';
 
 interface Salary {
@@ -123,19 +123,13 @@ function parseSalaryString(str: string | undefined | null): Salary {
   else if (s.includes("€")) currency = "EUR";
   else if (s.toLowerCase().includes("usd")) currency = "USD";
   else if (s.toLowerCase().includes("eur")) currency = "EUR";
-
   const nums: string[] = s.replace(/,/g, "").match(/\d+(\.\d+)?(k|K)?/g) || [];
   const parsed: number[] = nums.map((n: string): number => {
     const isK: boolean = /k/i.test(n);
     const v: number = parseFloat(n.replace(/k/i, ""));
     return isK ? v * 1000 : v;
   }).filter((n: number) => n > 1000);
-
-  return {
-    min: parsed[0] || 0,
-    max: parsed[1] || parsed[0] || 0,
-    currency
-  };
+  return { min: parsed[0] || 0, max: parsed[1] || parsed[0] || 0, currency };
 }
 
 function isWithin30Days(dateStr: string | undefined): boolean {
@@ -160,6 +154,124 @@ function matchesCategory(text: string, categories: string[]): boolean {
   );
 }
 
+// ============== LOCAL CV GENERATION — NO API CALLS ==============
+function buildCV(job: Job): string {
+  const title: string = job.title || "the role";
+  const company: string = job.company || "the company";
+  const description: string = (job.description || "").toLowerCase();
+
+  const keywordPool: string[] = [
+    "marketing", "communications", "content", "seo", "digital strategy",
+    "b2b", "fintech", "saas", "legaltech", "brand", "growth", "campaign",
+    "stakeholder", "leadership", "strategy", "analytics", "social media",
+    "copywriting", "editorial", "audio", "dolby atmos", "pro tools",
+    "post-production", "media production", "podcast", "project management",
+    "agile", "cross-functional", "go-to-market", "demand generation",
+    "thought leadership", "kpi", "roi", "python", "data-driven",
+    "storytelling", "public relations"
+  ];
+
+  const matchedKeywords: string[] = keywordPool.filter((kw: string) => description.includes(kw));
+  const keywordLine: string = matchedKeywords.length > 0
+    ? matchedKeywords.map((k: string) => k.replace(/\b\w/g, (c: string) => c.toUpperCase())).join(" | ")
+    : "B2B Content Marketing | SEO | Digital Strategy | Communications | Project Management";
+
+  const titleLower: string = title.toLowerCase();
+  let roleFocus: string = "communications and digital marketing";
+  if (titleLower.includes("audio") || titleLower.includes("sound")) {
+    roleFocus = "audio engineering and media production";
+  } else if (titleLower.includes("content")) {
+    roleFocus = "content strategy and editorial leadership";
+  } else if (titleLower.includes("seo") || titleLower.includes("growth")) {
+    roleFocus = "SEO and growth marketing";
+  } else if (titleLower.includes("project") || titleLower.includes("program")) {
+    roleFocus = "project and programme management";
+  } else if (titleLower.includes("communication") || titleLower.includes("pr")) {
+    roleFocus = "strategic communications and public relations";
+  } else if (titleLower.includes("marketing")) {
+    roleFocus = "B2B marketing and digital strategy";
+  }
+
+  return [
+    "DESIRE ASONYE",
+    "Milton Keynes, United Kingdom  |  desireasonye@gmail.com  |  07350153174",
+    "Application: " + title + " — " + company,
+    "",
+    "================================================================",
+    "PROFESSIONAL PROFILE",
+    "================================================================",
+    "Versatile senior professional with proven leadership across " + roleFocus + ",",
+    "combining a strong commercial track record in Fintech, SaaS and Legaltech",
+    "with award-credited experience in audio engineering and media production.",
+    "Numerate background (BSc Mathematics) underpins a data-driven approach to",
+    "content marketing, SEO and digital strategy. Open to worldwide remote roles.",
+    "",
+    "================================================================",
+    "CORE COMPETENCIES",
+    "================================================================",
+    keywordLine,
+    "",
+    "B2B Content Marketing & Editorial Strategy",
+    "Search Engine Optimisation (SEO) & Organic Growth",
+    "Digital Strategy & Multi-Channel Campaigns",
+    "Fintech / SaaS / Legaltech Communications",
+    "Brand Positioning & Thought Leadership",
+    "Audio Engineering — Dolby Atmos, Pro Tools",
+    "Project & Stakeholder Management",
+    "Python (developing) | Cross-functional Leadership",
+    "",
+    "================================================================",
+    "PROFESSIONAL EXPERIENCE",
+    "================================================================",
+    "",
+    "HEAD OF COMMUNICATIONS — Fintech / Legaltech Sector",
+    "- Owned end-to-end communications strategy across regulated environments",
+    "- Built integrated content programmes spanning PR, thought leadership and digital",
+    "- Partnered with C-suite to translate technical propositions into B2B messaging",
+    "- Established editorial governance and measurement standards aligned to KPIs",
+    "",
+    "HEAD OF DIGITAL MARKETING — SaaS",
+    "- Led full-funnel digital marketing covering SEO, content, paid and analytics",
+    "- Designed data-driven campaigns increasing qualified pipeline and organic visibility",
+    "- Implemented SEO architecture and keyword strategy growing non-branded traffic",
+    "- Managed agency partners and analytics tooling for ROI-focused growth",
+    "",
+    "CONTENT MANAGER — Church / Non-Profit",
+    "- Directed multi-format content production (written, audio, video, social)",
+    "- Built editorial workflows and volunteer creative teams",
+    "- Coordinated cross-functional projects from concept through publication",
+    "",
+    "AUDIO ENGINEER — Credits: Netflix, FilmOne, IronOak Games",
+    "- Delivered professional audio engineering and post-production for broadcast and film",
+    "- Specialist in Dolby Atmos immersive audio and Pro Tools sessions",
+    "- Collaborated with directors and producers to translate brief into final mix",
+    "",
+    "IMPLEMENTING PARTNER — Association of African Podcasters & Voice Artists",
+    "- Supported podcast and voice-artist community programmes and production standards",
+    "- Bridged creative production and operational delivery",
+    "",
+    "================================================================",
+    "EDUCATION",
+    "================================================================",
+    "BSc Mathematics",
+    "",
+    "================================================================",
+    "CERTIFICATIONS",
+    "================================================================",
+    "DBS Enhanced Disclosure  |  First Aid at Work  |  Dolby Atmos  |  Pro Tools",
+    "",
+    "================================================================",
+    "ADDITIONAL INFORMATION",
+    "================================================================",
+    "Location: Milton Keynes, United Kingdom",
+    "Work Authorisation: UK-based, eligible for remote international roles",
+    "Availability: Open to remote and worldwide remote opportunities",
+    "",
+    "References available on request.",
+    "Tailored application for: " + title + " at " + company
+  ].join("\n");
+}
+
 const DEFAULT_SETTINGS: Settings = {
   rapidApiKey: "",
   emailServiceId: "",
@@ -176,13 +288,10 @@ const EMAIL_DELAY_MS: number = 3000;
 
 export default function AutoApplyAgent(): React.ReactElement {
   const [settings, setSettings] = useState<Settings>((): Settings => {
-    const saved: string | null = localStorage.getItem("autoapply_settings");
+    const saved: string | null = localStorage.getItem("autoapply_settings_v3");
     if (!saved) return DEFAULT_SETTINGS;
     try {
-      const parsed = JSON.parse(saved) as Partial<Settings> & { anthropicKey?: string };
-      // Strip any legacy anthropicKey field
-      delete parsed.anthropicKey;
-      return { ...DEFAULT_SETTINGS, ...parsed };
+      return { ...DEFAULT_SETTINGS, ...JSON.parse(saved) as Partial<Settings> };
     } catch {
       return DEFAULT_SETTINGS;
     }
@@ -214,31 +323,22 @@ export default function AutoApplyAgent(): React.ReactElement {
       script.onload = (): void => {
         emailJsLoadedRef.current = true;
         if (window.emailjs && settings.emailPublicKey) {
-          try { window.emailjs.init(settings.emailPublicKey); } catch (e) { /* ignore */ }
+          try { window.emailjs.init(settings.emailPublicKey); } catch (_e) { /* ignore */ }
         }
       };
       document.body.appendChild(script);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect((): void => {
     if (window.emailjs && settings.emailPublicKey) {
-      try { window.emailjs.init(settings.emailPublicKey); } catch (e) { /* ignore */ }
+      try { window.emailjs.init(settings.emailPublicKey); } catch (_e) { /* ignore */ }
     }
   }, [settings.emailPublicKey]);
 
   useEffect((): void => {
-    localStorage.setItem("autoapply_settings", JSON.stringify(settings));
+    localStorage.setItem("autoapply_settings_v3", JSON.stringify(settings));
   }, [settings]);
-
-  useEffect((): (() => void) | void => {
-    if (settings.refreshInterval === "manual") return;
-    const ms: number = settings.refreshInterval === "6hrs" ? 6 * 3600 * 1000 : 24 * 3600 * 1000;
-    const id: ReturnType<typeof setInterval> = setInterval((): void => { void searchAllPlatforms(); }, ms);
-    return (): void => clearInterval(id);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [settings.refreshInterval]);
 
   const showError = (msg: string): void => {
     setErrorToast(msg);
@@ -251,7 +351,6 @@ export default function AutoApplyAgent(): React.ReactElement {
     );
   };
 
-  // ============== FETCHERS ==============
   async function fetchIndeed(): Promise<Job[]> {
     if (!settings.rapidApiKey) return [];
     try {
@@ -265,7 +364,7 @@ export default function AutoApplyAgent(): React.ReactElement {
       if (!res.ok) throw new Error("JSearch " + res.status);
       const data: { data?: Array<Record<string, unknown>> } = await res.json();
       return (data.data || []).map((j: Record<string, unknown>): Job => ({
-        id: "indeed_" + (String(j.job_id) || Math.random().toString()),
+        id: "indeed_" + String(j.job_id || Math.random()),
         platform: "Indeed",
         title: String(j.job_title || ""),
         company: String(j.employer_name || ""),
@@ -278,8 +377,7 @@ export default function AutoApplyAgent(): React.ReactElement {
         posted: j.job_posted_at_datetime_utc as string | undefined
       }));
     } catch (e: unknown) {
-      const err = e as Error;
-      showError("Indeed: " + err.message);
+      showError("Indeed: " + (e as Error).message);
       return [];
     }
   }
@@ -302,8 +400,7 @@ export default function AutoApplyAgent(): React.ReactElement {
         posted: j.date as string | undefined
       }));
     } catch (e: unknown) {
-      const err = e as Error;
-      showError("RemoteOK: " + err.message);
+      showError("RemoteOK: " + (e as Error).message);
       return [];
     }
   }
@@ -325,8 +422,7 @@ export default function AutoApplyAgent(): React.ReactElement {
         posted: j.publication_date as string | undefined
       }));
     } catch (e: unknown) {
-      const err = e as Error;
-      showError("Remotive: " + err.message);
+      showError("Remotive: " + (e as Error).message);
       return [];
     }
   }
@@ -360,8 +456,7 @@ export default function AutoApplyAgent(): React.ReactElement {
         };
       });
     } catch (e: unknown) {
-      const err = e as Error;
-      showError("WWR: " + err.message);
+      showError("WWR: " + (e as Error).message);
       return [];
     }
   }
@@ -386,8 +481,7 @@ export default function AutoApplyAgent(): React.ReactElement {
         posted: (j.pubDate || j.publishedDate) as string | undefined
       }));
     } catch (e: unknown) {
-      const err = e as Error;
-      showError("Himalayas: " + err.message);
+      showError("Himalayas: " + (e as Error).message);
       return [];
     }
   }
@@ -417,48 +511,23 @@ export default function AutoApplyAgent(): React.ReactElement {
         };
       });
     } catch (e: unknown) {
-      const err = e as Error;
-      showError("Remote.co: " + err.message);
+      showError("Remote.co: " + (e as Error).message);
       return [];
     }
   }
 
-  // ============== CV GENERATION (LOCAL — NO API CALLS) ==============
-  async function generateCV(job: Job): Promise<string> {
-    const title = job.title || "the role";
-    const company = job.company || "the company";
-    const description = (job.description || "").toLowerCase();
-    const keywordPool = ["marketing","communications","content","seo","digital strategy","b2b","fintech","saas","legaltech","brand","growth","campaign","stakeholder","leadership","strategy","analytics","social media","copywriting","editorial","audio","dolby atmos","pro tools","post-production","media production","podcast","project management","agile","cross-functional","go-to-market","demand generation","thought leadership","kpi","roi","python","data-driven","storytelling","public relations"];
-    const matchedKeywords = keywordPool.filter(kw => description.includes(kw));
-    const keywordLine = matchedKeywords.length > 0 ? matchedKeywords.map(k => k.replace(/\b\w/g, c => c.toUpperCase())).join(" • ") : "B2B Content Marketing • SEO • Digital Strategy • Communications • Project Management";
-    const titleLower = title.toLowerCase();
-    let roleFocus = "communications and digital marketing";
-    if (titleLower.includes("audio") || titleLower.includes("sound")) roleFocus = "audio engineering and media production";
-    else if (titleLower.includes("content")) roleFocus = "content strategy and editorial leadership";
-    else if (titleLower.includes("seo") || titleLower.includes("growth")) roleFocus = "SEO and growth marketing";
-    else if (titleLower.includes("project") || titleLower.includes("program")) roleFocus = "project and programme management";
-    else if (titleLower.includes("communication") || titleLower.includes("pr")) roleFocus = "strategic communications and public relations";
-    else if (titleLower.includes("marketing")) roleFocus = "B2B marketing and digital strategy";
-    return `DESIRE ASONYE\nMilton Keynes, United Kingdom | desireasonye@gmail.com | 07350153174\nApplication: ${title} — ${company}\n\nPROFESSIONAL PROFILE\nVersatile senior professional with proven leadership across ${roleFocus}, combining a strong commercial track record in Fintech, SaaS and Legaltech with award-credited experience in audio engineering and media production.\n\nCORE COMPETENCIES\n${keywordLine}\n\nPROFESSIONAL EXPERIENCE\nHead of Communications — Fintech/Legaltech\nHead of Digital Marketing — SaaS\nContent Manager — Church/Non-Profit\nAudio Engineer — Netflix, FilmOne, IronOak Games\nImplementing Partner — Association of African Podcasters & Voice Artists\n\nEDUCATION\nBSc Mathematics\n\nCERTIFICATIONS\nDBS Enhanced | First Aid | Dolby Atmos | Pro Tools`;
-  }
-
   async function sendEmail(job: Job, cvText: string): Promise<void> {
     if (!window.emailjs || !settings.emailServiceId || !settings.emailTemplateId || !settings.emailPublicKey) return;
-    if (emailSentThisRunRef.current) return; // Only ONE email per run
-    if (emailsSentThisSessionRef.current >= MAX_EMAILS_PER_SESSION) return; // Hard cap
-
-    // Enforce 3-second gap between sends
+    if (emailSentThisRunRef.current) return;
+    if (emailsSentThisSessionRef.current >= MAX_EMAILS_PER_SESSION) return;
     const now: number = Date.now();
     const elapsed: number = now - lastEmailTimeRef.current;
     if (lastEmailTimeRef.current > 0 && elapsed < EMAIL_DELAY_MS) {
-      await new Promise<void>((resolve): void => {
-        setTimeout(resolve, EMAIL_DELAY_MS - elapsed);
-      });
+      await new Promise<void>((resolve): void => { setTimeout(resolve, EMAIL_DELAY_MS - elapsed); });
     }
-
     try {
       const salaryText: string = (job.salary && (job.salary.min || job.salary.max))
-        ? `${job.salary.currency} ${job.salary.min || ""}${job.salary.max ? " - " + job.salary.max : ""}`
+        ? job.salary.currency + " " + (job.salary.min || "") + (job.salary.max ? " - " + job.salary.max : "")
         : "Not listed";
       await window.emailjs.send(settings.emailServiceId, settings.emailTemplateId, {
         to_email: "desireasonye@gmail.com",
@@ -472,21 +541,17 @@ export default function AutoApplyAgent(): React.ReactElement {
       emailSentThisRunRef.current = true;
       emailsSentThisSessionRef.current += 1;
       lastEmailTimeRef.current = Date.now();
-      addNotification({
-        type: "email",
-        msg: `Email sent for ${job.title} @ ${job.company} (${emailsSentThisSessionRef.current}/${MAX_EMAILS_PER_SESSION} this session)`
-      });
+      addNotification({ type: "email", msg: "Email sent for " + job.title + " @ " + job.company });
     } catch (e: unknown) {
       const err = e as { text?: string; message?: string };
       showError("Email: " + (err.text || err.message || "send failed"));
     }
   }
 
-  // ============== SEARCH ORCHESTRATOR ==============
   async function searchAllPlatforms(): Promise<void> {
     setLoading(true);
     setLastSearched(new Date().toISOString());
-    emailSentThisRunRef.current = false; // reset per-run flag
+    emailSentThisRunRef.current = false;
 
     const tasks: Array<Promise<Job[]>> = [];
     if (activePlatforms.Indeed) tasks.push(fetchIndeed());
@@ -522,18 +587,18 @@ export default function AutoApplyAgent(): React.ReactElement {
     setJobs((prev: Job[]): Job[] => {
       const existingIds: Set<string> = new Set<string>(prev.map((p: Job) => p.id));
       const newOnes: Job[] = deduped.filter((d: Job) => !existingIds.has(d.id));
+
       newOnes.forEach((nj: Job): void =>
-        addNotification({ type: "job", msg: `New: ${nj.title} @ ${nj.company} (${nj.platform})` })
+        addNotification({ type: "job", msg: "New: " + nj.title + " @ " + nj.company + " (" + nj.platform + ")" })
       );
 
-      // Generate CV locally for each new job (no API)
       newOnes.forEach((nj: Job, idx: number): void => {
         void (async (): Promise<void> => {
-          const cv: string = await generateCV(nj);
+          // Build CV locally — zero API calls
+          const cv: string = buildCV(nj);
           setJobs((curr: Job[]): Job[] =>
             curr.map((c: Job): Job => c.id === nj.id ? { ...c, cv, cvLoading: false } : c)
           );
-          // Only attempt to send for the FIRST new job of this run
           if (idx === 0) {
             void sendEmail(nj, cv);
           }
@@ -541,10 +606,7 @@ export default function AutoApplyAgent(): React.ReactElement {
       });
 
       const newJobsWithDefaults: Job[] = newOnes.map((n: Job): Job => ({
-        ...n,
-        status: "Notified",
-        cvLoading: true,
-        cv: ""
+        ...n, status: "Notified", cvLoading: false, cv: buildCV(n)
       }));
       return [...newJobsWithDefaults, ...prev];
     });
@@ -556,8 +618,7 @@ export default function AutoApplyAgent(): React.ReactElement {
     setJobs((prev: Job[]): Job[] => prev.map((j: Job): Job => {
       if (j.id !== id) return j;
       const order: JobStatus[] = ["Notified", "Applied", "Interview Prep"];
-      const currentIdx: number = order.indexOf(j.status || "Notified");
-      const next: JobStatus = order[(currentIdx + 1) % order.length];
+      const next: JobStatus = order[(order.indexOf(j.status || "Notified") + 1) % order.length];
       return { ...j, status: next };
     }));
   };
@@ -567,19 +628,17 @@ export default function AutoApplyAgent(): React.ReactElement {
     addNotification({ type: "info", msg: "CV copied to clipboard" });
   };
 
-  const stats: { found: number; cvs: number; ready: number } = {
+  const stats = {
     found: jobs.length,
     cvs: jobs.filter((j: Job) => j.cv && !j.cvLoading).length,
     ready: jobs.filter((j: Job) => j.status === "Applied" || j.status === "Interview Prep").length
   };
 
-  // ============== UI ==============
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100 font-sans">
-      {/* Top stats bar */}
       <div className="sticky top-0 z-30 bg-slate-900 border-b border-slate-800 px-4 py-3 flex flex-wrap items-center gap-4 justify-between">
         <div className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center font-bold">A</div>
+          <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center font-bold text-white">A</div>
           <div>
             <h1 className="text-lg font-bold">AutoApply Agent</h1>
             <p className="text-xs text-slate-400">{CANDIDATE_PROFILE.name}</p>
@@ -598,7 +657,6 @@ export default function AutoApplyAgent(): React.ReactElement {
       </div>
 
       <div className="flex flex-col lg:flex-row">
-        {/* Sidebar */}
         <aside className="lg:w-72 w-full bg-slate-900 border-r border-slate-800 p-4 lg:min-h-screen">
           <h2 className="text-sm font-bold text-slate-400 uppercase mb-3">Search</h2>
           <input
@@ -622,7 +680,7 @@ export default function AutoApplyAgent(): React.ReactElement {
                 <input
                   type="checkbox"
                   checked={activePlatforms[p]}
-                  onChange={(): void => setActivePlatforms((prev: Record<string, boolean>) => ({ ...prev, [p]: !prev[p] }))}
+                  onChange={(): void => setActivePlatforms((prev) => ({ ...prev, [p]: !prev[p] }))}
                   className="accent-indigo-500"
                 />
                 <span className={`px-2 py-0.5 rounded text-xs ${PLATFORM_COLORS[p] || "bg-slate-700"}`}>{p}</span>
@@ -653,7 +711,7 @@ export default function AutoApplyAgent(): React.ReactElement {
           </div>
 
           <h2 className="text-sm font-bold text-slate-400 uppercase mb-3">Salary Filter</h2>
-          <div className="text-xs text-slate-400 mb-1">Min: {settings.currency} {settings.minSalary}</div>
+          <div className="text-xs text-slate-400 mb-1">Min: {settings.currency} {settings.minSalary.toLocaleString()}</div>
           <input
             type="range" min="20000" max="200000" step="5000"
             value={settings.minSalary}
@@ -664,7 +722,6 @@ export default function AutoApplyAgent(): React.ReactElement {
           />
         </aside>
 
-        {/* Main feed */}
         <main className="flex-1 p-4 lg:p-6">
           {jobs.length === 0 && !loading && (
             <div className="text-center py-20">
@@ -675,7 +732,7 @@ export default function AutoApplyAgent(): React.ReactElement {
             </div>
           )}
 
-          {loading && jobs.length === 0 && (
+          {loading && (
             <div className="grid gap-4">
               {[1, 2, 3].map((i: number) => (
                 <div key={i} className="bg-slate-900 border border-slate-800 rounded-xl p-5 animate-pulse">
@@ -700,7 +757,7 @@ export default function AutoApplyAgent(): React.ReactElement {
                       <p className="text-slate-400 text-sm">{job.company}</p>
                     </div>
                     <div className="flex flex-wrap gap-2">
-                      <span className={`px-2 py-1 rounded text-xs font-medium ${PLATFORM_COLORS[job.platform]}`}>{job.platform}</span>
+                      <span className={`px-2 py-1 rounded text-xs font-medium ${PLATFORM_COLORS[job.platform] || "bg-slate-700"}`}>{job.platform}</span>
                       {(job.salary?.min || job.salary?.max) ? (
                         <span className={`px-2 py-1 rounded text-xs font-medium ${aboveThreshold ? "bg-green-600 text-white" : "bg-slate-700 text-slate-300"}`}>
                           {job.salary.currency} {job.salary.min || "?"}{job.salary.max ? "–" + job.salary.max : ""}
@@ -723,7 +780,7 @@ export default function AutoApplyAgent(): React.ReactElement {
                       {job.status}
                     </button>
                     <button
-                      onClick={(): void => setExpandedJobs((p: Record<string, boolean>) => ({ ...p, [job.id]: !p[job.id] }))}
+                      onClick={(): void => setExpandedJobs((p) => ({ ...p, [job.id]: !p[job.id] }))}
                       className="px-3 py-1 rounded-md bg-slate-800 hover:bg-slate-700 text-xs"
                     >
                       {expanded ? "Hide CV" : "View Tailored CV"}
@@ -747,17 +804,7 @@ export default function AutoApplyAgent(): React.ReactElement {
 
                   {expanded && (
                     <div className="mt-3 bg-slate-950 border border-slate-800 rounded-lg p-4">
-                      {job.cvLoading ? (
-                        <div className="space-y-2 animate-pulse">
-                          <div className="h-3 bg-slate-800 rounded w-3/4"></div>
-                          <div className="h-3 bg-slate-800 rounded w-full"></div>
-                          <div className="h-3 bg-slate-800 rounded w-5/6"></div>
-                          <div className="h-3 bg-slate-800 rounded w-2/3"></div>
-                          <p className="text-xs text-slate-500 mt-3">Generating tailored CV…</p>
-                        </div>
-                      ) : (
-                        <pre className="whitespace-pre-wrap text-xs text-slate-200 font-mono">{job.cv}</pre>
-                      )}
+                      <pre className="whitespace-pre-wrap text-xs text-slate-200 font-mono">{job.cv || "No CV generated yet"}</pre>
                     </div>
                   )}
                 </div>
@@ -766,7 +813,6 @@ export default function AutoApplyAgent(): React.ReactElement {
           </div>
         </main>
 
-        {/* Right drawer */}
         {showDrawer && (
           <aside className="lg:w-80 w-full bg-slate-900 border-l border-slate-800 p-4 lg:min-h-screen">
             <div className="flex justify-between items-center mb-4">
@@ -778,10 +824,9 @@ export default function AutoApplyAgent(): React.ReactElement {
               {notifications.map((n: Notification, i: number) => (
                 <div key={i} className="bg-slate-800 rounded-md p-3 text-xs">
                   <div className="flex justify-between mb-1">
-                    <span className={`font-medium ${
-                      n.type === "job" ? "text-indigo-400" :
-                      n.type === "email" ? "text-green-400" : "text-slate-300"
-                    }`}>{n.type.toUpperCase()}</span>
+                    <span className={`font-medium ${n.type === "job" ? "text-indigo-400" : n.type === "email" ? "text-green-400" : "text-slate-300"}`}>
+                      {n.type.toUpperCase()}
+                    </span>
                     <span className="text-slate-500">{new Date(n.ts).toLocaleTimeString()}</span>
                   </div>
                   <p className="text-slate-200">{n.msg}</p>
@@ -792,7 +837,6 @@ export default function AutoApplyAgent(): React.ReactElement {
         )}
       </div>
 
-      {/* Settings Modal */}
       {showSettings && (
         <div className="fixed inset-0 bg-black/70 z-50 flex items-center justify-center p-4">
           <div className="bg-slate-900 border border-slate-700 rounded-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
@@ -819,7 +863,6 @@ export default function AutoApplyAgent(): React.ReactElement {
                   />
                 </div>
               ))}
-
               <div>
                 <label className="block text-xs text-slate-400 mb-1">Min Salary Threshold</label>
                 <input
@@ -831,7 +874,6 @@ export default function AutoApplyAgent(): React.ReactElement {
                   className="w-full bg-slate-800 border border-slate-700 rounded-md px-3 py-2 text-sm"
                 />
               </div>
-
               <div>
                 <label className="block text-xs text-slate-400 mb-1">Preferred Currency</label>
                 <select
@@ -846,31 +888,6 @@ export default function AutoApplyAgent(): React.ReactElement {
                   <option value="EUR">EUR (€)</option>
                 </select>
               </div>
-
-              <div>
-                <label className="block text-xs text-slate-400 mb-2">Categories</label>
-                <div className="grid grid-cols-2 gap-2">
-                  {DEFAULT_CATEGORIES.map((c: string) => (
-                    <label key={c} className="flex items-center gap-2 text-sm">
-                      <input
-                        type="checkbox"
-                        checked={settings.categories.includes(c)}
-                        onChange={(): void => {
-                          setSettings((s: Settings): Settings => ({
-                            ...s,
-                            categories: s.categories.includes(c)
-                              ? s.categories.filter((x: string) => x !== c)
-                              : [...s.categories, c]
-                          }));
-                        }}
-                        className="accent-indigo-500"
-                      />
-                      <span>{c}</span>
-                    </label>
-                  ))}
-                </div>
-              </div>
-
               <div>
                 <label className="block text-xs text-slate-400 mb-1">Refresh Interval</label>
                 <select
@@ -885,7 +902,6 @@ export default function AutoApplyAgent(): React.ReactElement {
                   <option value="24hrs">Every 24 hours</option>
                 </select>
               </div>
-
               <button
                 onClick={(): void => {
                   setShowSettings(false);
@@ -900,7 +916,6 @@ export default function AutoApplyAgent(): React.ReactElement {
         </div>
       )}
 
-      {/* Error toast */}
       {errorToast && (
         <div className="fixed bottom-4 right-4 z-50 bg-red-600 text-white px-4 py-3 rounded-lg shadow-lg max-w-sm">
           <div className="flex justify-between items-start gap-3">
