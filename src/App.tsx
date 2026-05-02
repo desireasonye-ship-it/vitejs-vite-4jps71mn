@@ -756,7 +756,6 @@ export default function AutoApplyAgent(): React.ReactElement {
                 c.id === nj.id ? { ...c, cv, cvLoading: false } : c
             )
           );
-          ;(nj, cv);
         })();
       });
 
